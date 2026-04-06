@@ -32,7 +32,8 @@ import {
   X,
   Clock,
   Filter,
-  AlertOctagon
+  AlertOctagon,
+  Plus
 } from 'lucide-react';
 import { 
   setSecureData, 
@@ -86,6 +87,7 @@ export default function Home() {
   const [isOnline, setIsOnline] = useState(true);
   const [showStats, setShowStats] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [fabOpen, setFabOpen] = useState(false);
 
   useEffect(() => {
     const initStorage = async () => {
@@ -1252,6 +1254,77 @@ export default function Home() {
           </div>
         </div>
       )}
+      
+      {/* Floating Action Button */}
+      <div style={{
+        position: 'fixed',
+        bottom: '1.5rem',
+        right: '1.5rem',
+        zIndex: 50,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
+        gap: '0.75rem'
+      }}>
+        {fabOpen && (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+            animation: 'slideUp 0.3s ease-out'
+          }}>
+            <button 
+              onClick={() => { setCurrentPage('history'); setFabOpen(false); }}
+              className="btn-secondary"
+              style={{ padding: '0.75rem', borderRadius: '50%', width: '48px', height: '48px' }}
+              title="History"
+            >
+              <History size={20} />
+            </button>
+            <button 
+              onClick={() => { setCurrentPage('templates'); setFabOpen(false); }}
+              className="btn-secondary"
+              style={{ padding: '0.75rem', borderRadius: '50%', width: '48px', height: '48px' }}
+              title="Scam Templates"
+            >
+              <FileText size={20} />
+            </button>
+            <button 
+              onClick={() => { setCurrentPage('emergency'); setFabOpen(false); }}
+              className="btn-secondary"
+              style={{ padding: '0.75rem', borderRadius: '50%', width: '48px', height: '48px' }}
+              title="Emergency"
+            >
+              <Phone size={20} />
+            </button>
+            <button 
+              onClick={() => { setCurrentPage('report'); setFabOpen(false); }}
+              className="btn-secondary"
+              style={{ padding: '0.75rem', borderRadius: '50%', width: '48px', height: '48px' }}
+              title="Report"
+            >
+              <Flag size={20} />
+            </button>
+          </div>
+        )}
+        
+        <button 
+          onClick={() => setFabOpen(!fabOpen)}
+          className="btn-primary"
+          style={{ 
+            width: '56px', 
+            height: '56px', 
+            borderRadius: '50%', 
+            padding: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(249, 115, 22, 0.4)'
+          }}
+        >
+          {fabOpen ? <X size={24} /> : <Plus size={24} />}
+        </button>
+      </div>
     </div>
   );
 }
