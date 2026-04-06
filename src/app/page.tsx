@@ -20,7 +20,18 @@ import {
   Lock,
   Globe,
   Info,
-  LogOut
+  LogOut,
+  Share2,
+  Download,
+  Phone,
+  Sun,
+  Moon,
+  Copy,
+  Check,
+  BookTemplate,
+  Users,
+  TrendingUp,
+  AlertOctagon
 } from 'lucide-react';
 import { 
   setSecureData, 
@@ -50,7 +61,7 @@ type UrlCheckResult = {
 
 type ScanHistoryItem = ScanResult & { id: string; inputText: string; createdAt: string };
 
-type Page = 'home' | 'result' | 'url-check' | 'url-result' | 'report' | 'history';
+type Page = 'home' | 'result' | 'url-check' | 'url-result' | 'report' | 'history' | 'emergency' | 'templates';
 
 export default function Home() {
   const router = useRouter();
@@ -66,6 +77,8 @@ export default function Home() {
   const [reportDescription, setReportDescription] = useState('');
   const [reportSubmitted, setReportSubmitted] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<'all' | 'SAFE' | 'SUSPICIOUS' | 'SCAM'>('all');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const initStorage = async () => {
@@ -82,7 +95,48 @@ export default function Home() {
       }
     };
     initStorage();
+    
+    const savedTheme = localStorage.getItem('safecheck_theme') as 'dark' | 'light' | null;
+    if (savedTheme) setTheme(savedTheme);
   }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    localStorage.setItem('safecheck_theme', newTheme);
+    document.documentElement.style.setProperty('--background', newTheme === 'dark' ? '#0a0a0a' : '#ffffff');
+    document.documentElement.style.setProperty('--surface', newTheme === 'dark' ? '#171717' : '#f5f5f5');
+    document.documentElement.style.setProperty('--text-primary', newTheme === 'dark' ? '#fafafa' : '#171717');
+    document.documentElement.style.setProperty('--text-secondary', newTheme === 'dark' ? '#a3a3a3' : '#6b7280');
+    document.documentElement.style.setProperty('--border', newTheme === 'dark' ? '#262626' : '#e5e7eb');
+  };
+
+  const shareResult = async () => {
+    if (!result) return;
+    const text = `SafeCheck AI Result: ${result.status} (${result.confidence}% confidence)\n\nAnalyzed: ${input.slice(0, 100)}...`;
+    if (navigator.share) {
+      await navigator.share({ title: 'SafeCheck AI', text });
+    } else {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const exportHistory = () => {
+    const data = history.map(h => ({
+      input: h.inputText,
+      status: h.status,
+      confidence: h.confidence,
+      date: new Date(h.createdAt).toLocaleString()
+    }));
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `safecheck-history-${Date.now()}.json`;
+    a.click();
+  };
 
   const saveToHistory = async (item: ScanHistoryItem) => {
     const newHistory = [item, ...history].slice(0, 50);
@@ -226,6 +280,15 @@ export default function Home() {
           </button>
           <button onClick={() => setCurrentPage('history')} className={`nav-link ${currentPage === 'history' ? 'active' : ''}`}>
             History
+          </button>
+          <button onClick={() => setCurrentPage('emergency')} className={`nav-link ${currentPage === 'emergency' ? 'active' : ''}`}>
+            Emergency
+          </button>
+          <button onClick={() => setCurrentPage('templates')} className={`nav-link ${currentPage === 'templates' ? 'active' : ''}`}>
+            Templates
+          </button>
+          <button onClick={toggleTheme} className="nav-link" title="Toggle theme">
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
           <button 
             onClick={async () => {
@@ -490,6 +553,10 @@ export default function Home() {
             <button className="btn-danger" onClick={() => setCurrentPage('report')}>
               <Flag size={16} style={{ marginRight: '0.5rem' }} />
               Report This Scam
+            </button>
+            <button className="btn-secondary" onClick={shareResult} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {copied ? <Check size={16} /> : <Share2 size={16} />}
+              {copied ? 'Copied!' : 'Share'}
             </button>
             <button 
               className="btn-primary" 
@@ -793,9 +860,16 @@ export default function Home() {
           <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>
             Scan History
           </h1>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
             View your past scans and results
           </p>
+          
+          {history.length > 0 && (
+            <button className="btn-secondary" onClick={exportHistory} style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Download size={16} />
+              Export History
+            </button>
+          )}
           
           <div className="tab-nav">
             <button 
@@ -875,6 +949,100 @@ export default function Home() {
     );
   };
 
+  const renderEmergency = () => (
+    <section style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
+      <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+          Emergency Contacts
+        </h1>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+          Report scams and get help immediately
+        </p>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <a href="tel:1930" className="card card-interactive" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--safe)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Phone size={24} color="white" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '1.125rem' }}>Cyber Crime Helpline</div>
+              <div style={{ color: 'var(--text-secondary)' }}>Call 1930 (Free)</div>
+            </div>
+          </a>
+          
+          <a href="https://www.cybercrime.gov.in" target="_blank" rel="noopener noreferrer" className="card card-interactive" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Globe size={24} color="white" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '1.125rem' }}>National Cyber Crime Portal</div>
+              <div style={{ color: 'var(--text-secondary)' }}>cybercrime.gov.in</div>
+            </div>
+          </a>
+          
+          <a href="tel:100" className="card card-interactive" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <AlertOctagon size={24} color="white" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '1.125rem' }}>Police Emergency</div>
+              <div style={{ color: 'var(--text-secondary)' }}>Call 100</div>
+            </div>
+          </a>
+          
+          <a href="https://sbi.sbiwise.com/forms/frmwise_home.aspx" target="_blank" rel="noopener noreferrer" className="card card-interactive" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#1d4ed8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Shield size={24} color="white" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '1.125rem' }}> RBI Sachet Portal</div>
+              <div style={{ color: 'var(--text-secondary)' }}>Report unauthorized transactions</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+
+  const SCAM_TEMPLATES = [
+    { name: 'Loan Scam', text: 'Your loan of Rs 5 lakh is approved. Instant cash, no collateral. Call now: 98765XXXXX' },
+    { name: 'OTP Fraud', text: 'Your Aadhaar has been suspended. Verify OTP 123456 to restore account immediately.' },
+    { name: 'KYC Update', text: 'Your KYC has expired. Update within 24 hours or lose account access. Click here: bit.ly/fake' },
+    { name: 'Prize Scam', text: 'Congratulations! You have won Rs 10 lakh lottery. Claim now by paying Rs 5000 processing fee.' },
+    { name: 'Bank Alert', text: 'Your account has been blocked. Verify your identity immediately at fake-bank.com/login' },
+  ];
+
+  const renderTemplates = () => (
+    <section style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
+      <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+          Common Scam Templates
+        </h1>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+          Tap to analyze - learn to recognize these patterns
+        </p>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {SCAM_TEMPLATES.map((template, i) => (
+            <div 
+              key={i} 
+              className="card card-interactive"
+              onClick={() => { setInput(template.text); setCurrentPage('home'); }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                <span style={{ fontWeight: 600 }}>{template.name}</span>
+                <WarningIcon size={16} style={{ color: 'var(--danger)' }} />
+              </div>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontFamily: 'monospace' }}>
+                "{template.text}"
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {renderNav()}
@@ -884,6 +1052,8 @@ export default function Home() {
       {currentPage === 'url-result' && renderUrlResult()}
       {currentPage === 'report' && renderReport()}
       {currentPage === 'history' && renderHistory()}
+      {currentPage === 'emergency' && renderEmergency()}
+      {currentPage === 'templates' && renderTemplates()}
     </div>
   );
 }
