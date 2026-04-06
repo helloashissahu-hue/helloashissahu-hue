@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   keywords: ["scam detector", "loan scam", "fraud detection", "SMS safety", "phishing prevention"],
   authors: [{ name: "SafeCheck AI" }],
   viewport: "width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover",
+  manifest: "/manifest.json",
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent' },
 };
 
 export default function RootLayout({

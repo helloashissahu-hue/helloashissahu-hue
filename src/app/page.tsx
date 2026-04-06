@@ -85,6 +85,7 @@ export default function Home() {
   const [searchHistory, setSearchHistory] = useState('');
   const [isOnline, setIsOnline] = useState(true);
   const [showStats, setShowStats] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
     const initStorage = async () => {
@@ -109,6 +110,17 @@ export default function Home() {
     setIsOnline(navigator.onLine);
     window.addEventListener('online', () => setIsOnline(true));
     window.addEventListener('offline', () => setIsOnline(false));
+    
+    // PWA install prompt
+    const handleBeforeInstall = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+    };
   }, []);
 
   const toggleTheme = () => {
@@ -171,6 +183,15 @@ export default function Home() {
     const suspicious = history.filter(h => h.status === 'SUSPICIOUS').length;
     const scam = history.filter(h => h.status === 'SCAM').length;
     return { total, safe, suspicious, scam };
+  };
+
+  const installApp = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
   };
 
   const shareResult = async () => {
@@ -1205,6 +1226,32 @@ export default function Home() {
       {currentPage === 'history' && renderHistory()}
       {currentPage === 'emergency' && renderEmergency()}
       {currentPage === 'templates' && renderTemplates()}
+      
+      {deferredPrompt && (
+        <div style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: 'var(--accent)',
+          padding: '1rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          zIndex: 100,
+          gap: '1rem'
+        }}>
+          <span style={{ color: 'white', fontWeight: 600 }}>Install SafeCheck AI App</span>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button onClick={() => setDeferredPrompt(null)} className="btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
+              Not now
+            </button>
+            <button onClick={installApp} className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
+              Install
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
