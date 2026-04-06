@@ -28,9 +28,10 @@ import {
   Moon,
   Copy,
   Check,
-  BookTemplate,
-  Users,
-  TrendingUp,
+  Mic,
+  X,
+  Clock,
+  Filter,
   AlertOctagon
 } from 'lucide-react';
 import { 
@@ -79,6 +80,9 @@ export default function Home() {
   const [historyFilter, setHistoryFilter] = useState<'all' | 'SAFE' | 'SUSPICIOUS' | 'SCAM'>('all');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [copied, setCopied] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [recentScans, setRecentScans] = useState<string[]>([]);
+  const [searchHistory, setSearchHistory] = useState('');
 
   useEffect(() => {
     const initStorage = async () => {
@@ -111,6 +115,49 @@ export default function Home() {
     document.documentElement.style.setProperty('--border', newTheme === 'dark' ? '#262626' : '#e5e7eb');
   };
 
+  const startVoiceInput = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Voice input is not supported in this browser');
+      return;
+    }
+    
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    
+    setIsListening(true);
+    
+    recognition.onresult = (event: any) => {
+      const transcript = Array.from(event.results)
+        .map((result: any) => result[0].transcript)
+        .join('');
+      setInput(input + transcript);
+    };
+    
+    recognition.onerror = () => {
+      setIsListening(false);
+    };
+    
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+    
+    recognition.start();
+  };
+
+  const copyInput = () => {
+    navigator.clipboard.writeText(input);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const clearInput = () => {
+    setInput('');
+  };
+
   const shareResult = async () => {
     if (!result) return;
     const text = `SafeCheck AI Result: ${result.status} (${result.confidence}% confidence)\n\nAnalyzed: ${input.slice(0, 100)}...`;
@@ -141,6 +188,11 @@ export default function Home() {
   const saveToHistory = async (item: ScanHistoryItem) => {
     const newHistory = [item, ...history].slice(0, 50);
     setHistory(newHistory);
+    
+    // Add to recent scans for search
+    const inputPreview = item.inputText.slice(0, 50);
+    setRecentScans([inputPreview, ...recentScans.filter(r => r !== inputPreview)].slice(0, 10));
+    
     await setSecureData('history', newHistory);
   };
 
@@ -362,8 +414,39 @@ export default function Home() {
                   handleScan();
                 }
               }}
-              style={{ minHeight: '140px', marginBottom: '1rem' }}
+              style={{ minHeight: '140px', marginBottom: '0.75rem' }}
             />
+            
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+              <button 
+                onClick={startVoiceInput} 
+                disabled={isListening}
+                className="btn-secondary"
+                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', minWidth: '120px' }}
+              >
+                {isListening ? <Loader2 size={16} className="animate-spin" /> : <Mic size={16} />}
+                {isListening ? 'Listening...' : 'Voice'}
+              </button>
+              <button 
+                onClick={copyInput} 
+                disabled={!input.trim()}
+                className="btn-secondary"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+              >
+                {copied ? <Check size={16} /> : <Copy size={16} />}
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+              <button 
+                onClick={clearInput} 
+                disabled={!input.trim()}
+                className="btn-secondary"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+              >
+                <X size={16} />
+                Clear
+              </button>
+            </div>
+            
             <button
               className="btn-primary"
               onClick={handleScan}
