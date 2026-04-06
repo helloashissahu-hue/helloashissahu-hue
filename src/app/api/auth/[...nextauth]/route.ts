@@ -2,28 +2,50 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const handler = async (req: NextRequest) => {
   const url = new URL(req.url);
+  const path = url.pathname.split('/api/auth/').pop() || '';
   
-  // Return empty session for MVP (no auth required)
-  if (url.pathname.includes('session')) {
-    return NextResponse.json({ user: null }, { status: 200 });
+  // Session endpoint - return empty session (user not logged in for MVP)
+  if (path.includes('session')) {
+    return NextResponse.json(
+      { user: null, expires: null },
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
   }
   
-  // Return empty providers for MVP  
-  if (url.pathname.includes('providers')) {
-    return NextResponse.json([], { status: 200 });
+  // Providers endpoint
+  if (path.includes('providers')) {
+    return NextResponse.json(
+      [],
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
   }
   
-  // Handle CSRF token request
-  if (url.pathname.includes('csrf')) {
-    return NextResponse.json({ token: 'csrf-token' }, { status: 200 });
+  // CSRF token
+  if (path.includes('csrf')) {
+    return NextResponse.json(
+      { csrfToken: 'mvp-csrf-token' },
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
   }
   
-  // Handle signout
-  if (url.pathname.includes('signout')) {
-    return NextResponse.json({ url: '/' }, { status: 200 });
+  // Signout
+  if (path.includes('signout')) {
+    return NextResponse.json(
+      { url: '/' },
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
   }
   
-  return NextResponse.json({ error: 'Auth disabled for MVP' }, { status: 200 });
+  // Callback
+  if (path.includes('callback')) {
+    return NextResponse.redirect(new URL('/login', req.url));
+  }
+  
+  // Default - return empty session
+  return NextResponse.json(
+      { user: null },
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+  );
 };
 
 export { handler as GET, handler as POST };
