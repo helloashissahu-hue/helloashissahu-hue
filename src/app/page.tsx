@@ -182,6 +182,8 @@ export default function Home() {
     } catch {
       alert('Something went wrong. Please try again.');
     } finally {
+      // Minimum 3 second delay to show skeleton
+      await new Promise(resolve => setTimeout(resolve, 3000));
       setIsLoading(false);
     }
   };
@@ -210,6 +212,8 @@ export default function Home() {
     } catch {
       alert('Something went wrong. Please try again.');
     } finally {
+      // Minimum 3 second delay to show skeleton
+      await new Promise(resolve => setTimeout(resolve, 3000));
       setIsLoading(false);
     }
   };
@@ -236,6 +240,8 @@ export default function Home() {
     } catch {
       alert('Failed to submit report. Please try again.');
     } finally {
+      // Minimum 3 second delay
+      await new Promise(resolve => setTimeout(resolve, 3000));
       setIsLoading(false);
     }
   };
