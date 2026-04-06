@@ -83,6 +83,8 @@ export default function Home() {
   const [isListening, setIsListening] = useState(false);
   const [recentScans, setRecentScans] = useState<string[]>([]);
   const [searchHistory, setSearchHistory] = useState('');
+  const [isOnline, setIsOnline] = useState(true);
+  const [showStats, setShowStats] = useState(false);
 
   useEffect(() => {
     const initStorage = async () => {
@@ -102,6 +104,11 @@ export default function Home() {
     
     const savedTheme = localStorage.getItem('safecheck_theme') as 'dark' | 'light' | null;
     if (savedTheme) setTheme(savedTheme);
+    
+    // Network status
+    setIsOnline(navigator.onLine);
+    window.addEventListener('online', () => setIsOnline(true));
+    window.addEventListener('offline', () => setIsOnline(false));
   }, []);
 
   const toggleTheme = () => {
@@ -156,6 +163,14 @@ export default function Home() {
 
   const clearInput = () => {
     setInput('');
+  };
+
+  const getStats = () => {
+    const total = history.length;
+    const safe = history.filter(h => h.status === 'SAFE').length;
+    const suspicious = history.filter(h => h.status === 'SUSPICIOUS').length;
+    const scam = history.filter(h => h.status === 'SCAM').length;
+    return { total, safe, suspicious, scam };
   };
 
   const shareResult = async () => {
@@ -339,6 +354,7 @@ export default function Home() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', maxWidth: '1200px', margin: '0 auto', flexWrap: 'wrap', gap: '0.5rem' }}>
           <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('home'); }} style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-primary)', textDecoration: 'none' }}>
             SafeCheck <span style={{ color: 'var(--accent)' }}>AI</span>
+            {!isOnline && <span style={{ fontSize: '0.625rem', color: 'var(--danger)', marginLeft: '0.25rem' }}>●</span>}
           </a>
           
           <div className="tab-nav" style={{ borderBottom: 'none', marginBottom: 0, gap: '0.125rem', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' }}>
@@ -966,6 +982,8 @@ export default function Home() {
       ? history 
       : history.filter(item => item.status === historyFilter);
     
+    const stats = getStats();
+    
     return (
       <section style={{ paddingTop: '6rem', paddingLeft: '1rem', paddingRight: '1rem', paddingBottom: '4rem' }}>
         <div style={{ maxWidth: '700px', margin: '0 auto' }}>
@@ -977,10 +995,31 @@ export default function Home() {
           </p>
           
           {history.length > 0 && (
-            <button className="btn-secondary" onClick={exportHistory} style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Download size={16} />
-              Export History
-            </button>
+            <>
+              <div className="grid-2" style={{ marginBottom: '1.5rem', gap: '0.75rem' }}>
+                <div className="card" style={{ padding: '1rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{stats.total}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Total Scans</div>
+                </div>
+                <div className="card" style={{ padding: '1rem', textAlign: 'center', borderColor: 'var(--safe)' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--safe)' }}>{stats.safe}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Safe</div>
+                </div>
+                <div className="card" style={{ padding: '1rem', textAlign: 'center', borderColor: 'var(--warning)' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--warning)' }}>{stats.suspicious}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Suspicious</div>
+                </div>
+                <div className="card" style={{ padding: '1rem', textAlign: 'center', borderColor: 'var(--danger)' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--danger)' }}>{stats.scam}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Scams</div>
+                </div>
+              </div>
+              
+              <button className="btn-secondary" onClick={exportHistory} style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Download size={16} />
+                Export History
+              </button>
+            </>
           )}
           
           <div className="tab-nav">
