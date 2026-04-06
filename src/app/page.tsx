@@ -376,6 +376,14 @@ export default function Home() {
                 </>
               )}
             </button>
+            
+            {isLoading && (
+              <div style={{ marginTop: '1.5rem' }}>
+                <div className="skeleton skeleton-text" style={{ width: '40%' }} />
+                <div className="skeleton skeleton-text" style={{ width: '70%' }} />
+                <div className="skeleton skeleton-text" style={{ width: '50%' }} />
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -624,6 +632,13 @@ export default function Home() {
               </>
             )}
           </button>
+          
+          {isLoading && (
+            <div style={{ marginTop: '1.5rem' }}>
+              <div className="skeleton skeleton-card" />
+              <div className="skeleton skeleton-text" style={{ width: '60%' }} />
+            </div>
+          )}
         </div>
       </div>
     </section>
