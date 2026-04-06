@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   description: "AI-powered scam detection for SMS, messages, and links. Stay safe from loan scams, OTP fraud, and phishing attempts.",
   keywords: ["scam detector", "loan scam", "fraud detection", "SMS safety", "phishing prevention"],
   authors: [{ name: "SafeCheck AI" }],
+  viewport: "width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover",
 };
 
 export default function RootLayout({

@@ -258,60 +258,68 @@ export default function Home() {
     }
   };
 
-  const renderNav = () => (
-    <header className="fixed top-0 left-0 right-0 z-50" style={{ 
-      background: 'rgba(10, 10, 10, 0.95)', 
-      backdropFilter: 'blur(10px)',
-      borderBottom: '1px solid var(--border)'
-    }}>
-      <nav className="nav-container">
-        <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('home'); }} className="logo">
-          SafeCheck <span className="logo-accent">AI</span>
-        </a>
-        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-          <button onClick={() => setCurrentPage('home')} className={`nav-link ${currentPage === 'home' ? 'active' : ''}`}>
-            Home
-          </button>
-          <button onClick={() => setCurrentPage('url-check')} className={`nav-link ${currentPage === 'url-check' || currentPage === 'url-result' ? 'active' : ''}`}>
-            URL Checker
-          </button>
-          <button onClick={() => setCurrentPage('report')} className={`nav-link ${currentPage === 'report' ? 'active' : ''}`}>
-            Report
-          </button>
-          <button onClick={() => setCurrentPage('history')} className={`nav-link ${currentPage === 'history' ? 'active' : ''}`}>
-            History
-          </button>
-          <button onClick={() => setCurrentPage('emergency')} className={`nav-link ${currentPage === 'emergency' ? 'active' : ''}`}>
-            Emergency
-          </button>
-          <button onClick={() => setCurrentPage('templates')} className={`nav-link ${currentPage === 'templates' ? 'active' : ''}`}>
-            Templates
-          </button>
-          <button onClick={toggleTheme} className="nav-link" title="Toggle theme">
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-          <button 
-            onClick={async () => {
-              await cleanupSecureStorage();
-              await logout();
-              setHistory([]);
-              setCurrentPage('home');
-            }}
-            className="nav-link"
-            title="Clear session & logout"
-            style={{ color: 'var(--danger)' }}
-          >
-            <LogOut size={16} />
-          </button>
+  const renderNav = () => {
+    const navItems = [
+      { key: 'home', label: 'Home', page: 'home' },
+      { key: 'url-check', label: 'URL', page: 'url-check' },
+      { key: 'report', label: 'Report', page: 'report' },
+      { key: 'history', label: 'History', page: 'history' },
+      { key: 'emergency', label: 'Emergency', page: 'emergency' },
+      { key: 'templates', label: 'Templates', page: 'templates' },
+    ];
+    
+    return (
+      <header style={{ 
+        position: 'fixed', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        zIndex: 50, 
+        background: 'var(--background)', 
+        borderBottom: '1px solid var(--border)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', maxWidth: '1200px', margin: '0 auto', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('home'); }} style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-primary)', textDecoration: 'none' }}>
+            SafeCheck <span style={{ color: 'var(--accent)' }}>AI</span>
+          </a>
+          
+          <div className="tab-nav" style={{ borderBottom: 'none', marginBottom: 0, gap: '0.125rem', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' }}>
+            {navItems.map(item => (
+              <button 
+                key={item.key}
+                onClick={() => setCurrentPage(item.page as Page)} 
+                className={`nav-link ${currentPage === item.page || (item.page === 'url-check' && (currentPage === 'url-check' || currentPage === 'url-result')) ? 'active' : ''}`}
+                style={{ fontSize: '0.75rem', padding: '0.5rem 0.625rem' }}
+              >
+                {item.label}
+              </button>
+            ))}
+            <button onClick={toggleTheme} className="nav-link" title="Toggle theme" style={{ padding: '0.5rem' }}>
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+            <button 
+              onClick={async () => {
+                await cleanupSecureStorage();
+                await logout();
+                setHistory([]);
+                setCurrentPage('home');
+              }}
+              className="nav-link"
+              title="Logout"
+              style={{ color: 'var(--danger)', padding: '0.5rem' }}
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
         </div>
-      </nav>
-    </header>
-  );
+      </header>
+    );
+  };
 
   const renderHome = () => (
     <>
-      <section style={{ paddingTop: '8rem', paddingBottom: '4rem', textAlign: 'center' }}>
-        <div className="animate-fade-in-up" style={{ maxWidth: '600px', margin: '0 auto' }}>
+      <section style={{ paddingTop: '6rem', paddingBottom: '3rem', paddingLeft: '1rem', paddingRight: '1rem', textAlign: 'center' }}>
+        <div className="animate-fade-in-up" style={{ maxWidth: '100%', margin: '0 auto' }}>
           <div style={{ 
             display: 'inline-flex', 
             alignItems: 'center', 
@@ -479,7 +487,7 @@ export default function Home() {
   );
 
   const renderResult = () => (
-    <section style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
+    <section style={{ paddingTop: '6rem', paddingLeft: '1rem', paddingRight: '1rem', paddingBottom: '4rem' }}>
       <div style={{ maxWidth: '700px', margin: '0 auto' }}>
         <button
           onClick={() => { setInput(''); setResult(null); setCurrentPage('home'); }}
@@ -572,7 +580,7 @@ export default function Home() {
   );
 
   const renderUrlCheck = () => (
-    <section style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
+    <section style={{ paddingTop: '6rem', paddingLeft: '1rem', paddingRight: '1rem', paddingBottom: '4rem' }}>
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
         <button
           onClick={() => { setUrlInput(''); setUrlResult(null); setCurrentPage('home'); }}
@@ -622,7 +630,7 @@ export default function Home() {
   );
 
   const renderUrlResult = () => (
-    <section style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
+    <section style={{ paddingTop: '6rem', paddingLeft: '1rem', paddingRight: '1rem', paddingBottom: '4rem' }}>
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
         <button
           onClick={() => { setUrlInput(''); setUrlResult(null); setCurrentPage('url-check'); }}
@@ -741,7 +749,7 @@ export default function Home() {
   );
 
   const renderReport = () => (
-    <section style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
+    <section style={{ paddingTop: '6rem', paddingLeft: '1rem', paddingRight: '1rem', paddingBottom: '4rem' }}>
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
         <button
           onClick={() => { setCurrentPage('home'); setReportSubmitted(false); }}
@@ -855,7 +863,7 @@ export default function Home() {
       : history.filter(item => item.status === historyFilter);
     
     return (
-      <section style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
+      <section style={{ paddingTop: '6rem', paddingLeft: '1rem', paddingRight: '1rem', paddingBottom: '4rem' }}>
         <div style={{ maxWidth: '700px', margin: '0 auto' }}>
           <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>
             Scan History
@@ -950,7 +958,7 @@ export default function Home() {
   };
 
   const renderEmergency = () => (
-    <section style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
+    <section style={{ paddingTop: '6rem', paddingLeft: '1rem', paddingRight: '1rem', paddingBottom: '4rem' }}>
       <div style={{ maxWidth: '700px', margin: '0 auto' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>
           Emergency Contacts
@@ -1013,7 +1021,7 @@ export default function Home() {
   ];
 
   const renderTemplates = () => (
-    <section style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
+    <section style={{ paddingTop: '6rem', paddingLeft: '1rem', paddingRight: '1rem', paddingBottom: '4rem' }}>
       <div style={{ maxWidth: '700px', margin: '0 auto' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>
           Common Scam Templates
